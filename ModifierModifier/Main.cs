@@ -3,10 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using BepInEx;
 using HarmonyLib;
-using CobwebAPI;
 using CobwebAPI.API;
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem;
+using UnityEngine.Internal;
+using UnityEngineInternal.Input;
 using UnityEngine.PlayerLoop;
+using UnityEngine.UI;
 
 
 namespace ModifierModifier
@@ -20,11 +24,12 @@ namespace ModifierModifier
         private Vector2 currentDrag = new Vector2();
         public Vector2 scrollPosition;
         public bool menuEnabled;
+        private InputAction _inputAction = new InputAction(binding: "<Keyboard>/Insert");
         
         public const string ModName = "ModifierModifier";
         public const string ModAuthor = "Bazinga";
         public const string ModGUID = "com.bazinga.modifiermodifier";
-        public const string ModVersion = "1.0.0";
+        public const string ModVersion = "1.1.0";
         internal Harmony Harmony;
 
         internal void Awake()
@@ -32,7 +37,7 @@ namespace ModifierModifier
             Harmony = new Harmony(ModGUID);
 
             Harmony.PatchAll();
-            Logger.LogInfo($"{ModName} successfully loaded! Made by {ModAuthor}");
+            Logger.LogInfo($"{ModName} successfully loaded! Made by {ModAuthor} \n Toggle Menu with the INS or INSERT key");
 
 
             Main.GUIStyle.alignment = TextAnchor.MiddleCenter;
@@ -43,12 +48,14 @@ namespace ModifierModifier
             backgroundStyle.normal.textColor = Color.black;
             backgroundStyle.normal.background = Texture2D.grayTexture;
             menuEnabled = false;
+            _inputAction.Enable();
         }
 
-        void Update()
+        private void Update()
         {
-            if (Input.GetKeyDown(KeyCode.Insert))
+            if (_inputAction.triggered)
             {
+                Logger.LogInfo($"Menu Toggled: {menuEnabled}");
                 menuEnabled = !menuEnabled;
             }
         }
@@ -56,33 +63,38 @@ namespace ModifierModifier
         [HarmonyPatch(typeof(ModifierManager), "GetNonMaxedWavesMods")]
         private void OnGUI()
         {
-
             var menuRect = new Rect(0, 25f, Screen.width / 2, Screen.height / 2);
-            GUI.BeginGroup(menuRect, GUIStyle);
+
             int valX = 0;
             int valY = 0;
-            foreach (var mods in GetTotalNonMaxedModifiers())
+            if (menuEnabled)
             {
-                if ((valY + 77) >= (Screen.height / 2))
+                GUI.BeginGroup(menuRect, GUIStyle);
+
+                foreach (var mods in GetTotalNonMaxedModifiers())
                 {
-                    valY = 0;
-                    valX += 173;
+                    if ((valY + 77) >= (Screen.height / 2))
+                    {
+                        valY = 0;
+                        valX += 173;
+                    }
+
+                    bool flag = GUI.Button(new Rect(25f + valX, (float) (25 + valY), 150f, 40f), mods.data.name,
+                        Main.backgroundStyle);
+                    if (flag)
+                    {
+                        Logger.LogInfo(mods.data.name + "Has been clicked");
+                        mods.levelInWaves = mods.data.maxLevel;
+
+                        Logger.LogInfo(mods.levelInWaves);
+                        Logger.LogInfo(mods.levelInVersus);
+                    }
+
+                    valY += 47;
                 }
-
-                bool flag = GUI.Button(new Rect(25f + valX, (float) (25 + valY), 150f, 40f), mods.data.name,
-                    Main.backgroundStyle);
-                if (flag)
-                {
-                    Logger.LogInfo(mods.data.name + "Has been clicked");
-                    mods.levelInWaves = mods.data.maxLevel;
-
-                    Logger.LogInfo(mods.levelInWaves);
-                    Logger.LogInfo(mods.levelInVersus);
-                }
-
-                valY += 47;
+                GUI.EndGroup();
             }
-            GUI.EndGroup();
+
 
 
         }
@@ -95,7 +107,8 @@ namespace ModifierModifier
 
         public void MaxMod(Modifier mod)
         {
-            WaveModifiers.Give(mod.data.name, mod.data.maxLevel);
+            
+            CobwebAPI.API.WaveModifiers.Give(mod.data.name, mod.data.maxLevel);
             Logger.LogInfo(mod.levelInWaves);
             Logger.LogInfo(mod.levelInVersus);
         }
