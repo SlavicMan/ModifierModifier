@@ -1,17 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using BepInEx;
 using HarmonyLib;
 using CobwebAPI.API;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
-using UnityEngine.Internal;
-using UnityEngineInternal.Input;
-using UnityEngine.PlayerLoop;
-using UnityEngine.UI;
-
 
 namespace ModifierModifier
 {
@@ -21,7 +14,7 @@ namespace ModifierModifier
         public static readonly GUIStyle backgroundStyle = new GUIStyle();
         public static readonly GUIStyle GUIStyle = new GUIStyle();
         
-        private Vector2 currentDrag = new Vector2();
+        //private Vector2 currentDrag = new Vector2();
         public Vector2 scrollPosition;
         public bool menuEnabled;
         private InputAction _inputAction = new InputAction(binding: "<Keyboard>/Insert");
@@ -29,7 +22,7 @@ namespace ModifierModifier
         public const string ModName = "ModifierModifier";
         public const string ModAuthor = "Bazinga";
         public const string ModGUID = "com.bazinga.modifiermodifier";
-        public const string ModVersion = "1.1.0";
+        public const string ModVersion = "1.1.1";
         internal Harmony Harmony;
 
         internal void Awake()
@@ -60,7 +53,7 @@ namespace ModifierModifier
             }
         }
         
-        [HarmonyPatch(typeof(ModifierManager), "GetNonMaxedWavesMods")]
+        [HarmonyPatch(typeof(ModifierManager), "GetNonMaxedSurvivalMods")]
         private void OnGUI()
         {
             var menuRect = new Rect(0, 25f, Screen.width / 2, Screen.height / 2);
@@ -84,9 +77,9 @@ namespace ModifierModifier
                     if (flag)
                     {
                         Logger.LogInfo(mods.data.name + "Has been clicked");
-                        mods.levelInWaves = mods.data.maxLevel;
+                        mods.levelInSurvival = mods.data.maxLevel;
 
-                        Logger.LogInfo(mods.levelInWaves);
+                        Logger.LogInfo(mods.levelInSurvival);
                         Logger.LogInfo(mods.levelInVersus);
                     }
 
@@ -98,39 +91,33 @@ namespace ModifierModifier
 
 
         }
-
-        void ModifierModifierWindow(int windowID)
-        {
-
-
-        }
-
+        
         public void MaxMod(Modifier mod)
         {
             
-            CobwebAPI.API.WaveModifiers.Give(mod.data.name, mod.data.maxLevel);
-            Logger.LogInfo(mod.levelInWaves);
+            //WaveModifiers.Give(mod.data.name, mod.data.maxLevel);
+            Logger.LogInfo(mod.levelInSurvival);
             Logger.LogInfo(mod.levelInVersus);
         }
         public List<Modifier> GetTotalNonMaxedModifiers()
         {
             var list = new List<Modifier>();
             list.AddRange(ModifierManager.instance.GetVersusMods());
-            list.AddRange(ModifierManager.instance.GetNonMaxedWavesMods());
+            list.AddRange(ModifierManager.instance.GetNonMaxedSurvivalMods());
             return list;
         }
 
     }
 
-    [HarmonyPatch(typeof(ModifierManager), "GetNonMaxedWavesMods")]
-    internal class ModifierManagerGetNonMaxedWavesModsPatch
+    [HarmonyPatch(typeof(ModifierManager), "GetNonMaxedSurvivalMods")]
+    internal class ModifierManagerGetNonMaxedSurvivalModsPatch
     {
         internal static List<Modifier> Mods { get; private set; } = new();
-
+    
         internal static bool Prefix(ModifierManager __instance, ref List<Modifier> __result)
         {
             var templist = (from m in Traverse.Create(__instance).Field<List<Modifier>>("_modifiers").Value
-                where m.levelInWaves < m.data.maxLevel && m.data.waves
+                where m.levelInSurvival < m.data.maxLevel && m.data.survival
                 select m).ToList();
             if (Mods.Count > 0)
             {
@@ -138,22 +125,22 @@ namespace ModifierModifier
                 {
                     if (mod == null || templist.Contains(mod))
                         continue;
-
+    
                     templist.Add(mod);
                 }
             }
-
+    
             __result = templist;
             return false;
         }
-
+    
         [HarmonyPatch(typeof(VersionNumberTextMesh), "Start")]
         public class VersionNumberTextMeshPatch
         {
             public static void Postfix(VersionNumberTextMesh __instance)
             {
                 __instance.textMesh.text +=
-                    $"\n<color=red>{Main.ModName} v{Main.ModVersion} by {Main.ModAuthor}</color>";
+                    $"\n<color=red>{Main.ModName} v{Main.ModVersion} by {Main.ModAuthor} \n use the INS or INSERT key to toggle the menu!!!</color>";
             }
         }
     }
