@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using BepInEx;
 using HarmonyLib;
 using CobwebAPI.API;
@@ -17,12 +18,16 @@ namespace ModifierModifier
         //private Vector2 currentDrag = new Vector2();
         public Vector2 scrollPosition;
         public bool menuEnabled;
-        private InputAction _inputAction = new InputAction(binding: "<Keyboard>/Insert");
+        public bool overrideMaxLevel;
+        public int addValue = 1;
+        public bool devConsoleEnabled;
+        private InputAction _MenuAction = new InputAction(binding: "<Keyboard>/Insert");
+        // private InputAction _ConsoleAction = new InputAction("<Keyboard>/Grave");
         
         public const string ModName = "ModifierModifier";
-        public const string ModAuthor = "Bazinga";
-        public const string ModGUID = "com.bazinga.modifiermodifier";
-        public const string ModVersion = "1.1.1";
+        public const string ModAuthor = "JustAWaffler";
+        public const string ModGUID = "JustAWaffler.modifiermodifier";
+        public const string ModVersion = "1.2.0";
         internal Harmony Harmony;
 
         internal void Awake()
@@ -30,7 +35,7 @@ namespace ModifierModifier
             Harmony = new Harmony(ModGUID);
 
             Harmony.PatchAll();
-            Logger.LogInfo($"{ModName} successfully loaded! Made by {ModAuthor} \n Toggle Menu with the INS or INSERT key");
+            Logger.LogMessage($"{ModName} successfully loaded! Made by {ModAuthor} \n Toggle Menu with the INS or INSERT key");
 
 
             Main.GUIStyle.alignment = TextAnchor.MiddleCenter;
@@ -41,16 +46,22 @@ namespace ModifierModifier
             backgroundStyle.normal.textColor = Color.black;
             backgroundStyle.normal.background = Texture2D.grayTexture;
             menuEnabled = false;
-            _inputAction.Enable();
+            _MenuAction.Enable();
+            //_ConsoleAction.Enable();
         }
 
         private void Update()
         {
-            if (_inputAction.triggered)
+            if (_MenuAction.triggered)
             {
-                Logger.LogInfo($"Menu Toggled: {menuEnabled}");
+                Logger.LogMessage($"Menu Toggled: {menuEnabled}");
                 menuEnabled = !menuEnabled;
             }
+
+            // if (_ConsoleAction.triggered)
+            // {
+            //     devConsoleEnabled = !devConsoleEnabled;
+            // }
         }
         
         [HarmonyPatch(typeof(ModifierManager), "GetNonMaxedSurvivalMods")]
@@ -72,22 +83,36 @@ namespace ModifierModifier
                         valX += 173;
                     }
 
-                    bool flag = GUI.Button(new Rect(25f + valX, (float) (25 + valY), 150f, 40f), mods.data.name,
+
+                    overrideMaxLevel = GUI.Toggle(new Rect(0, -10, 70, 10), overrideMaxLevel, "Override Max Level");
+                    bool flag = GUI.Button(new Rect(25f + valX, (float) (25 + valY), 150f, 40f), mods.data.name + " : " + mods.levelInSurvival,
                         Main.backgroundStyle);
                     if (flag)
                     {
-                        Logger.LogInfo(mods.data.name + "Has been clicked");
-                        mods.levelInSurvival = mods.data.maxLevel;
+                        Logger.LogMessage(mods.data.name + "Has been clicked");
+                        if (mods.levelInSurvival < mods.data.maxLevel)
+                        {
+                            mods.levelInSurvival += addValue;
+                        } else if (overrideMaxLevel)
+                        {
+                            mods.levelInSurvival += addValue;
+                        } else if (mods.levelInSurvival > mods.data.maxLevel & !overrideMaxLevel)
+                        {
+                            mods.levelInSurvival = mods.data.maxLevel;
+                        }
+                        
+                        
+                        //mods.levelInSurvival = mods.data.maxLevel;
 
-                        Logger.LogInfo(mods.levelInSurvival);
-                        Logger.LogInfo(mods.levelInVersus);
+                        Logger.LogMessage(mods.levelInSurvival);
+                        Logger.LogMessage(mods.levelInVersus);
                     }
 
                     valY += 47;
                 }
                 GUI.EndGroup();
             }
-
+            
 
 
         }
@@ -96,8 +121,8 @@ namespace ModifierModifier
         {
             
             //WaveModifiers.Give(mod.data.name, mod.data.maxLevel);
-            Logger.LogInfo(mod.levelInSurvival);
-            Logger.LogInfo(mod.levelInVersus);
+            Logger.LogMessage(mod.levelInSurvival);
+            Logger.LogMessage(mod.levelInVersus);
         }
         public List<Modifier> GetTotalNonMaxedModifiers()
         {
@@ -106,6 +131,7 @@ namespace ModifierModifier
             list.AddRange(ModifierManager.instance.GetNonMaxedSurvivalMods());
             return list;
         }
+        
 
     }
 
