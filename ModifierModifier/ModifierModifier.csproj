@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFramework>netstandard2.1</TargetFramework>
         <LangVersion>latest</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
@@ -15,6 +15,46 @@
     <PropertyGroup>
         <GameVersion>0.86.2-r.0</GameVersion>
     </PropertyGroup>
+
+    <ItemGroup>
+      <None Remove="Resources\box.png" />
+      <None Remove="Resources\button active.png" />
+      <None Remove="Resources\button hover.png" />
+      <None Remove="Resources\button on hover.png" />
+      <None Remove="Resources\button on.png" />
+      <None Remove="Resources\button.png" />
+      <None Remove="Resources\buttonactive.png" />
+      <None Remove="Resources\buttonhover.png" />
+      <None Remove="Resources\ButtonMod.prefab" />
+      <None Remove="Resources\buttonon.png" />
+      <None Remove="Resources\buttononhover.png" />
+      <None Remove="Resources\toggleactive.png" />
+      <None Remove="Resources\toggleactivenoheader.png" />
+      <None Remove="Resources\togglehover.png" />
+      <None Remove="Resources\toggleonactive.png" />
+      <None Remove="Resources\toggleonhover.png" />
+      <None Remove="Resources\toggleon.png" />
+      <None Remove="Resources\toggle.png" />
+      <None Remove="Resources\uimessy.png" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Resources\box.png" />
+      <EmbeddedResource Include="Resources\button.png" />
+      <EmbeddedResource Include="Resources\buttonactive.png" />
+      <EmbeddedResource Include="Resources\buttonhover.png" />
+      <EmbeddedResource Include="Resources\ButtonMod.prefab" />
+      <EmbeddedResource Include="Resources\buttonon.png" />
+      <EmbeddedResource Include="Resources\buttononhover.png" />
+      <EmbeddedResource Include="Resources\toggleactive.png" />
+      <EmbeddedResource Include="Resources\toggleactivenoheader.png" />
+      <EmbeddedResource Include="Resources\togglehover.png" />
+      <EmbeddedResource Include="Resources\toggleonactive.png" />
+      <EmbeddedResource Include="Resources\toggleonhover.png" />
+      <EmbeddedResource Include="Resources\toggleon.png" />
+      <EmbeddedResource Include="Resources\toggle.png" />
+      <EmbeddedResource Include="Resources\uimessy.png" />
+    </ItemGroup>
 
     <ItemGroup>
       <Reference Include="0Harmony">
@@ -59,6 +99,9 @@
       <Reference Include="UnityEngine.TextRenderingModule">
         <HintPath>..\References\UnityEngine.TextRenderingModule.dll</HintPath>
       </Reference>
+	  <Reference Include="UnityEngine.ImageConversionModule">
+		  <HintPath>..\References\UnityEngine.ImageConversionModule</HintPath>
+	  </Reference>
       <Reference Include="UnityEngine.UI">
         <HintPath>..\References\UnityEngine.UI.dll</HintPath>
       </Reference>
